@@ -1,0 +1,183 @@
+      {/* Side Drawer */}
+      {isDrawerOpen && selectedEquipment && (
+        <div className="fixed top-0 right-0 h-full w-[440px] z-50">
+          <div className="fixed inset-0 sm:hidden" onClick={() => setIsDrawerOpen(false)} />
+          <div className="h-full w-full transform transition-transform duration-300 ease-in-out translate-x-0">
+            <div className="flex h-full flex-col overflow-y-scroll bg-white border-l border-gray-200">
+              <div className="px-4 py-6 sm:px-6 border-b border-gray-200">
+                <div className="flex items-start justify-between">
+                  <h2 className="text-lg font-medium text-gray-900">
+                    Equipment Details
+                  </h2>
+                  <div className="ml-3 flex h-7 items-center">
+                    <button
+                      type="button"
+                      className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                      onClick={() => setIsDrawerOpen(false)}
+                    >
+                      <span className="sr-only">Close panel</span>
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="relative flex-1 px-4 sm:px-6">
+                <div className="space-y-6">
+                  <div>
+                    <div className="aspect-w-16 aspect-h-9 rounded-lg bg-gray-100 overflow-hidden">
+                      {selectedEquipment.image && (
+                        <img
+                          src={selectedEquipment.image}
+                          alt={selectedEquipment.name}
+                          className="object-cover"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <input
+                        type="text"
+                        value={selectedEquipment.name}
+                        onChange={(e) => {
+                          setSelectedEquipment({
+                            ...selectedEquipment,
+                            name: e.target.value
+                          });
+                        }}
+                        className="text-lg font-medium text-gray-900 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent"
+                      />
+                      <textarea
+                        value={selectedEquipment.description}
+                        onChange={(e) => {
+                          setSelectedEquipment({
+                            ...selectedEquipment,
+                            description: e.target.value
+                          });
+                        }}
+                        rows={2}
+                        className="mt-1 text-sm text-gray-500 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent resize-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">Category</dt>
+                        <select
+                          value={selectedEquipment.category}
+                          onChange={(e) => {
+                            setSelectedEquipment({
+                              ...selectedEquipment,
+                              category: e.target.value
+                            });
+                          }}
+                          className="mt-1 text-sm text-gray-900 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent"
+                        >
+                          {EQUIPMENT_CATEGORIES.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">Price</dt>
+                        <div className="relative">
+                          <span className="absolute inset-y-0 left-0 text-gray-500">$</span>
+                          <input
+                            type="text"
+                            value={selectedEquipment.price.replace('$', '')}
+                            onChange={(e) => {
+                              setSelectedEquipment({
+                                ...selectedEquipment,
+                                price: `$${e.target.value}`
+                              });
+                            }}
+                            className="mt-1 text-sm text-gray-900 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 pl-4 bg-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">Purchase Date</dt>
+                        <input
+                          type="date"
+                          value={selectedEquipment.purchaseDate}
+                          onChange={(e) => {
+                            setSelectedEquipment({
+                              ...selectedEquipment,
+                              purchaseDate: e.target.value
+                            });
+                          }}
+                          className="mt-1 text-sm text-gray-900 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent"
+                        />
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">Purchase Location</dt>
+                        <input
+                          type="text"
+                          value={selectedEquipment.purchaseLocation}
+                          onChange={(e) => {
+                            setSelectedEquipment({
+                              ...selectedEquipment,
+                              purchaseLocation: e.target.value
+                            });
+                          }}
+                          className="mt-1 text-sm text-gray-900 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {selectedEquipment.link && (
+                      <div>
+                        <dt className="text-sm font-medium text-gray-500">Product Link</dt>
+                        <dd className="mt-1">
+                          <input
+                            type="url"
+                            value={selectedEquipment.link}
+                            onChange={(e) => {
+                              setSelectedEquipment({
+                                ...selectedEquipment,
+                                link: e.target.value
+                              });
+                            }}
+                            className="text-sm text-coffee-600 hover:text-coffee-500 w-full border-0 border-b border-transparent hover:border-gray-300 focus:border-coffee-500 focus:ring-0 p-0 bg-transparent"
+                          />
+                        </dd>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Save changes
+                        console.log('Saving changes:', selectedEquipment);
+                        setIsDrawerOpen(false);
+                      }}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(selectedEquipment.id)}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EquipmentListPage; 

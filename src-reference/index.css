@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 24px; /* 1rem = 24px */
+    font-family: Helvetica Neue, Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;  /* For WebKit browsers */
+    -moz-osx-font-smoothing: grayscale;   /* For Firefox on macOS */
+    background: #84cc16; /* lime-500 */
+    overscroll-behavior: auto; /* Re-enable overscroll */
+  }
+
+  body {
+    background: white; /* Main content background */
+    min-height: 100vh;
+    position: relative;
+  }
+
+  body::after {
+    content: '';
+    background: #84cc16;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+  }
+} 
+
+@layer components {
+  .hover-rounded-effect {
+    position: relative;
+    transition: all 0.2s ease;
+  }
+  
+  .hover-rounded-effect::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 0;
+    right: 0;
+    bottom: 2px;
+    background-color: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    border-radius: 12px;
+    transition: opacity 0.2s ease;
+    z-index: 0;
+    pointer-events: none;
+  }
+  
+  .hover-rounded-effect:hover::before {
+    opacity: 1;
+  }
+} 
