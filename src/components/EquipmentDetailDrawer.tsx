@@ -24,6 +24,14 @@ const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }
   );
 };
 
+// If you have a type definition file, you should update it there instead
+interface RetailerLink {
+  retailerId: string;
+  price: number;
+  url: string;
+  affiliateCode?: string; // Make it optional
+}
+
 interface EquipmentDetailDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -61,6 +69,13 @@ const EquipmentDetailDrawer: React.FC<EquipmentDetailDrawerProps> = ({
     onClose();
   };
 
+  // Reset confirmation state when drawer closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsConfirmingDelete(false);
+    }
+  }, [isOpen]);
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,156 +96,197 @@ const EquipmentDetailDrawer: React.FC<EquipmentDetailDrawerProps> = ({
     };
   }, [isOpen, equipment, onEdit]);
 
+  // Add styles to ensure title truncation
+  useEffect(() => {
+    if (isOpen) {
+      const styleEl = document.createElement('style');
+      styleEl.id = 'drawer-title-style';
+      styleEl.innerHTML = `
+        /* Force title to truncate and not wrap */
+        [id^="headlessui-dialog-title-"] {
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+          max-width: calc(100% - 3rem) !important;
+          display: block !important;
+        }
+        
+        /* Remove tooltip from close button */
+        .headlessui-dialog-close .sr-only {
+          display: none;
+        }
+        
+        /* Ensure drawer content doesn't overflow */
+        .drawer-content {
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+      `;
+      document.head.appendChild(styleEl);
+      
+      return () => {
+        const existingStyle = document.getElementById('drawer-title-style');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+      };
+    }
+  }, [isOpen]);
+
+  // Format date if available
+  const formattedDate = equipment?.purchaseDate 
+    ? new Date(equipment.purchaseDate).toLocaleDateString(undefined, { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    : null;
+
+  // Check if this is an affiliate product
+  const isAffiliate = equipment?.retailers?.some(
+    retailer => 'affiliateCode' in retailer && retailer.affiliateCode
+  );
+
   if (!equipment) return null;
 
   return (
     <Drawer 
       isOpen={isOpen} 
-      onClose={() => {
-        setIsConfirmingDelete(false);
-        onClose();
-      }} 
+      onClose={onClose}
       title={equipment.name}
     >
-      <div className="flex flex-col h-full relative">
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-          <div className="space-y-6 pb-20">
-            <div className="flex flex-col">
-              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
-                <div className="mt-2 flex items-center text-sm text-gray-500">
-                  <span className="bg-coffee-100 text-coffee-800 px-2 py-1 rounded-full text-xs">
-                    {equipment.category}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center text-sm text-gray-500">
-                  <span>{equipment.price}</span>
-                </div>
-                {equipment.purchaseDate && (
-                  <div className="mt-2 flex items-center text-sm text-gray-500">
-                    <span>Purchased on {new Date(equipment.purchaseDate).toLocaleDateString()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {equipment.image && (
-              <div>
-                <img
-                  src={equipment.image}
-                  alt={equipment.name}
-                  className="w-full h-auto max-h-64 object-contain rounded-lg"
-                />
-              </div>
-            )}
-
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Equipment Details</h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">Details about your coffee equipment.</p>
-              </div>
-              <div className="border-t border-gray-200">
-                <dl>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">Name</dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.name}</dd>
-                  </div>
-                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">Category</dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.category}</dd>
-                  </div>
-                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                    <dt className="text-sm font-medium text-gray-500">Price</dt>
-                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.price}</dd>
-                  </div>
-                  {equipment.description && (
-                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">Description</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.description}</dd>
-                    </div>
-                  )}
-                  {equipment.purchaseDate && (
-                    <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">Purchase Date</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {new Date(equipment.purchaseDate).toLocaleDateString()}
-                      </dd>
-                    </div>
-                  )}
-                  {equipment.purchaseLocation && (
-                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">Purchase Location</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{equipment.purchaseLocation}</dd>
-                    </div>
-                  )}
-                  {equipment.link && (
-                    <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">Product Link</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        <a
-                          href={equipment.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-coffee-600 hover:text-coffee-500"
-                        >
-                          {equipment.link}
-                        </a>
-                      </dd>
-                    </div>
-                  )}
-                  {equipment.retailers && equipment.retailers.length > 0 && (
-                    <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                      <dt className="text-sm font-medium text-gray-500">Retailers</dt>
-                      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        <ul className="divide-y divide-gray-200">
-                          {equipment.retailers.map((retailer) => (
-                            <li key={retailer.retailerId} className="py-2">
-                              <div className="flex justify-between">
-                                <span>{retailer.retailerId}</span>
-                                <span>${retailer.price.toFixed(2)}</span>
-                              </div>
-                              <a 
-                                href={retailer.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-coffee-600 hover:text-coffee-500 text-sm"
-                              >
-                                View at retailer
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-            </div>
+      <div className="flex flex-col h-full drawer-content">
+        <div className="flex-1 overflow-y-auto p-4 overflow-x-hidden">
+          {/* Category row */}
+          <div className="flex items-center">
+            <span className="bg-coffee-100 text-coffee-800 px-2 py-1 rounded-full text-xs font-medium">
+              {equipment.category}
+            </span>
           </div>
+
+          {/* Affiliate badge if applicable */}
+          {isAffiliate && (
+            <div className="flex items-center mt-2">
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                Special promo code
+              </span>
+            </div>
+          )}
+          
+          {/* Description */}
+          {equipment.description && (
+            <div className="mt-3">
+              <p className="text-sm text-gray-700">{equipment.description}</p>
+            </div>
+          )}
+          
+          {/* Purchase info */}
+          {(formattedDate || equipment.purchaseLocation) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 mt-4">
+              {formattedDate && (
+                <div className="flex items-center">
+                  <svg className="mr-1.5 h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="truncate">Purchased {formattedDate}</span>
+                </div>
+              )}
+              {equipment.purchaseLocation && (
+                <div className="flex items-center">
+                  <svg className="mr-1.5 h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  <span className="truncate">{equipment.purchaseLocation}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Product link */}
+          {equipment.link && (
+            <div className="mt-6">
+              <a
+                href={equipment.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-coffee-600 hover:text-coffee-500"
+              >
+                <svg className="mr-1.5 h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                <span className="truncate">View product page</span>
+              </a>
+            </div>
+          )}
+
+          {/* Retailers section */}
+          {equipment.retailers && equipment.retailers.length > 0 && (
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Available at retailers</h3>
+              <div className="space-y-3">
+                {equipment.retailers.map((retailer) => (
+                  <div key={retailer.retailerId} className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+                    <div className="font-medium text-sm truncate">{retailer.retailerId}</div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">{retailer.price.toFixed(2)}</span>
+                      {('affiliateCode' in retailer && retailer.affiliateCode) ? (
+                        <span className="text-xs text-green-600 font-medium truncate max-w-[120px]">
+                          {`Save 10% with code: ${retailer.affiliateCode}`}
+                        </span>
+                      ) : null}
+                      <a 
+                        href={retailer.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs bg-white px-2 py-1 rounded border border-gray-200 text-coffee-600 hover:text-coffee-700"
+                      >
+                        View
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
-        {/* Fixed bottom action buttons */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 pt-3 pb-3 bg-white px-4 sm:px-6">
+        {/* Action buttons */}
+        <div className="border-t border-gray-200 p-4">
           <div className="flex space-x-3">
-            <Tooltip text="Edit equipment details">
-              <button
-                onClick={handleEdit}
-                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-              >
-                Edit
-              </button>
-            </Tooltip>
-            <Tooltip text={isConfirmingDelete ? "Confirm deletion" : "Delete this equipment"}>
-              <button
-                onClick={handleDelete}
-                className={`flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                  isConfirmingDelete 
-                    ? 'bg-red-700 hover:bg-red-800' 
-                    : 'bg-red-600 hover:bg-red-700'
-                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-              >
-                {isConfirmingDelete ? 'Confirm Delete' : 'Delete'}
-              </button>
-            </Tooltip>
+            <button
+              onClick={handleEdit}
+              className="flex-1 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              className={`p-2 border border-transparent rounded-md text-white ${
+                isConfirmingDelete 
+                  ? 'bg-red-700 hover:bg-red-800' 
+                  : 'bg-red-600 hover:bg-red-700'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+              aria-label={isConfirmingDelete ? "Confirm Delete" : "Delete"}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Keyboard shortcuts hint */}
+          <div className="mt-3 text-center text-xs text-gray-500">
+            <span className="inline-flex items-center">
+              <kbd className="mx-1 px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">
+                {navigator.platform.indexOf('Mac') !== -1 ? '⌘' : 'Ctrl'}+E
+              </kbd>
+              to edit
+            </span>
+            <span className="mx-2">•</span>
+            <span className="inline-flex items-center">
+              <kbd className="mx-1 px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">Esc</kbd>
+              to close
+            </span>
           </div>
         </div>
       </div>

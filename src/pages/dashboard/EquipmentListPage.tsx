@@ -496,7 +496,7 @@ const EquipmentListPage: React.FC = () => {
   }, [displayedEquipment.length, showAllItems]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
+    <div className="max-w-7xl mx-auto px-4 py-2 pb-20">
       <div ref={contentRef}>
         {/* Equipment Setups */}
         <div className="mb-8">
@@ -706,9 +706,27 @@ const EquipmentListPage: React.FC = () => {
                   }}
                   className="flex-1 flex items-start text-left"
                 >
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
-                    <p className="text-xs text-gray-500 truncate">{item.category}</p>
+                  <div className="min-w-0 flex-1 flex items-center">
+                    {settings.showProductImages && (
+                      <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-md overflow-hidden">
+                        {item.image && (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="h-10 w-10 object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              // Fallback image if loading fails
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=300&h=200&q=80';
+                            }}
+                          />
+                        )}
+                      </div>
+                    )}
+                    <div className={`min-w-0 flex-1 ${settings.showProductImages ? 'pl-3' : ''}`}>
+                      <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
+                      <p className="text-xs text-gray-500 truncate">{item.category}</p>
+                    </div>
                   </div>
                   <div className="ml-2 flex-shrink-0 flex">
                     {item.price && (

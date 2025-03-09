@@ -101,16 +101,16 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div>
-      <div className="md:flex md:items-center md:justify-between mb-8">
+      {/* <div className="md:flex md:items-center md:justify-between mb-8">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h2 className="text-base font-medium leading-7 text-gray-900 sm:text-3xl sm:truncate">
             Your Profile
           </h2>
           <p className="mt-1 text-sm text-gray-500">
             Manage your account settings and preferences.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {error && (
         <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
@@ -142,7 +142,7 @@ const ProfilePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6 mb-8">
+      <div className="bg-white border border-gray-200 px-4 py-5 sm:rounded-lg sm:p-6 mb-8">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
             <h3 className="text-lg font-medium leading-6 text-gray-900">Username</h3>
@@ -182,8 +182,8 @@ const ProfilePage: React.FC = () => {
             )}
 
             <form onSubmit={handleUsernameSubmit}>
-              <div className="grid grid-cols-6 gap-6">
-                <div className="col-span-6 sm:col-span-4">
+              <div className="space-y-6">
+                <div>
                   <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                     Username
                   </label>
@@ -220,7 +220,7 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+      <div className="bg-white border border-gray-200 px-4 py-5 sm:rounded-lg sm:p-6">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
             <div className="sm:col-span-4">
@@ -254,8 +254,8 @@ const ProfilePage: React.FC = () => {
                   disabled
                 />
               </div>
-              <p className="mt-2 text-sm text-gray-500">
-                Email address cannot be changed.
+              <p className="mt-2 text-xs text-gray-500">
+                Email cannot be changed. Contact support if you need to update your email.
               </p>
             </div>
 
@@ -271,7 +271,6 @@ const ProfilePage: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className="input"
-                  placeholder="Leave blank to keep current password"
                 />
               </div>
             </div>
@@ -288,13 +287,11 @@ const ProfilePage: React.FC = () => {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   className="input"
-                  placeholder="Leave blank to keep current password"
                 />
               </div>
             </div>
           </div>
-
-          <div className="mt-8 flex justify-end">
+          <div className="mt-6 flex justify-between">
             <button
               type="button"
               onClick={handleLogout}
@@ -313,7 +310,7 @@ const ProfilePage: React.FC = () => {
         </form>
       </div>
 
-      <div className="mt-8 bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+      <div className="mt-8 bg-white border border-gray-200 px-4 py-5 sm:rounded-lg sm:p-6">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
             <h3 className="text-lg font-medium leading-6 text-gray-900">Display Settings</h3>
@@ -467,13 +464,27 @@ const ProfilePage: React.FC = () => {
                     </span>
                   </button>
                 </div>
+                
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    className="py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    onClick={() => {
+                      // Settings are already saved automatically via the updateSettings function
+                      setSuccess('Display settings saved successfully');
+                      setTimeout(() => setSuccess(''), 3000);
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+      <div className="mt-8 bg-white border border-gray-200 px-4 py-5 sm:rounded-lg sm:p-6">
         <div className="md:grid md:grid-cols-3 md:gap-6">
           <div className="md:col-span-1">
             <h3 className="text-lg font-medium leading-6 text-gray-900">Delete Account</h3>
@@ -494,7 +505,7 @@ const ProfilePage: React.FC = () => {
                     <h3 className="text-sm font-medium text-red-800">Warning</h3>
                     <div className="mt-2 text-sm text-red-700">
                       <p>
-                        This action cannot be undone. All of your data will be permanently removed.
+                        This action cannot be undone. All of your data will be permanently deleted.
                       </p>
                     </div>
                   </div>
@@ -503,7 +514,7 @@ const ProfilePage: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
                   Delete Account
                 </button>
