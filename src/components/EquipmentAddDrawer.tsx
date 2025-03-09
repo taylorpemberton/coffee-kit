@@ -369,10 +369,10 @@ const EquipmentAddDrawer: React.FC<EquipmentAddDrawerProps> = ({
         )}
 
         {!showForm && !isEditing && (
-          <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+          <div className="bg-white">
             <div>
               <label htmlFor="input" className="block text-sm font-medium text-gray-700">
-                Describe Your Equipment or Paste a Product URL
+                Describe your item or paste product URL
               </label>
               <div className="mt-1">
                 <textarea
@@ -382,7 +382,7 @@ const EquipmentAddDrawer: React.FC<EquipmentAddDrawerProps> = ({
                   value={description || url}
                   onChange={handleInputChange}
                   className="shadow-sm focus:ring-coffee-500 focus:border-coffee-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Example: I have a Gaggia Classic Pro espresso machine&#10;or&#10;https://example.com/coffee-product"
+                  placeholder="Example: I have a Gaggia Classic Pro espresso machine&#10;or&#10;https://www.amazon.com/Normcore-Knock-out-Absorbing-Removable-Stainless/dp/B0CLYR4LY7/ref=sr_1_6?crid=2Y17GBLM6RD5A&dib=eyJ2IjoiMSJ9.5ujUSjhoZKErLMXfqrjm1NDkkvV4WjJX6yASQ41fYtuux8UWegT_-GUigPa2FjQLVxotw1mfpkwaeG4efB_Jt4NJyZZ01tHkix_vbQRkAtmpjf_Mn5QC7ObR_td8qAZCJECW5WdxQBkl3SsdTJsgi5tImWShIc_HjUNA7azJy1emXgbrUHh4-igQNKCdCHdhmkBVtQmPvLcjEZv0dhjJR_1q2COPAmfaSAziDEWh4KIpLs2kRVZNPuDl8_4zQtx1yZ27hNVwki4ohCDPXjWh8eD-1aLToMFcQcVr-4uuNw4_eMsBcklEbXVlom_-9NPyue_d0gsotoXcNx4SU_QpGD5zGs0QC1xj8HKgAr2Zft2rmLy24USgqVUkjZe0GjymrVEb4oOlQS7R56LtNzbxwe98LRk33dQOkCSOqX6U_VOZynII2d72AGzoIFWxU__b.RpGKpAEBHVXvyyTivc6w5f438GP46kK2XT8Z5dRUod4&dib_tag=se&keywords=knock%2Bbox%2Bdrawer&qid=1736691485&sprefix=knock%2Bbox%2Bdrawe%2Caps%2C100&sr=8-6&th=1"
                 />
               </div>
               <p className="mt-2 text-sm text-gray-500">
@@ -405,7 +405,7 @@ const EquipmentAddDrawer: React.FC<EquipmentAddDrawerProps> = ({
                     </>
                   ) : (
                     <>
-                      Generate Item
+                      Generate
                       <ShortcutHint />
                     </>
                   )}
@@ -415,7 +415,7 @@ const EquipmentAddDrawer: React.FC<EquipmentAddDrawerProps> = ({
                   onClick={() => setShowForm(true)}
                   className="text-coffee-600 hover:text-coffee-500 text-sm"
                 >
-                  or enter details manually →
+                  Enter manually
                 </button>
               </div>
             </div>

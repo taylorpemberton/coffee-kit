@@ -127,6 +127,9 @@ const EquipmentListPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [showStickyFooter, setShowStickyFooter] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   // Function declarations
   const toggleDropdown = (id: string) => {
     setDropdownOpen(prev => ({
@@ -466,362 +469,433 @@ const EquipmentListPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="relative">
-      {/* Equipment Setups */}
-      <div className="mb-8">
-        <div className="mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Setups</h2>
-        </div>
+  // Check if content overflows viewport height
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (contentRef.current) {
+        const contentHeight = contentRef.current.scrollHeight;
+        const viewportHeight = window.innerHeight;
+        setShowStickyFooter(contentHeight > viewportHeight - 100); // 100px buffer
+      }
+    };
 
-        {isAddingSetup ? (
-          <form onSubmit={handleSetupSubmit} className="bg-white p-4 rounded-lg shadow mb-4">
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="setupName" className="block text-sm font-medium text-gray-700">
-                  Setup Name *
-                </label>
-                <input
-                  type="text"
-                  id="setupName"
-                  name="name"
-                  required
-                  value={setupFormData.name}
-                  onChange={(e) => setSetupFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Aeropress Setup, Travel Kit"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-coffee-500 focus:ring-coffee-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="setupDescription" className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <textarea
-                  id="setupDescription"
-                  name="description"
-                  rows={2}
-                  value={setupFormData.description}
-                  onChange={(e) => setSetupFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe your setup..."
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-coffee-500 focus:ring-coffee-500 sm:text-sm"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAddingSetup(false);
-                    setSetupFormData({ name: '', description: '' });
-                  }}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-                >
-                  Create Setup
-                </button>
-              </div>
-            </div>
-          </form>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {equipmentSetups.map((setup) => (
-              <div
-                key={setup.id}
-                onClick={() => setSelectedSetup(setup.id === selectedSetup ? '' : setup.id)}
-                className={`relative rounded-lg border p-3 cursor-pointer transition-colors ${
-                  setup.id === selectedSetup
-                    ? 'border-coffee-500 bg-coffee-50'
-                    : 'border-gray-300 bg-white hover:border-gray-400'
-                }`}
-              >
-                <div className="flex flex-col">
-                  <h3 className="text-sm font-medium text-gray-900">{setup.name}</h3>
-                  <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{setup.description}</p>
-                  <div className="mt-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-coffee-100 text-coffee-800">
-                      {setup.equipment.length} items
-                    </span>
-                  </div>
+    // Check on initial render and when content might change
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    
+    // Also check when equipment list changes
+    const observer = new MutationObserver(checkOverflow);
+    if (contentRef.current) {
+      observer.observe(contentRef.current, { childList: true, subtree: true });
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkOverflow);
+      observer.disconnect();
+    };
+  }, [displayedEquipment.length, showAllItems]);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
+      <div ref={contentRef}>
+        {/* Equipment Setups */}
+        <div className="mb-8">
+          <div className="mb-4">
+            <h2 className="text-lg font-medium text-gray-900">Setups</h2>
+          </div>
+
+          {isAddingSetup ? (
+            <form onSubmit={handleSetupSubmit} className="bg-white p-4 rounded-lg shadow mb-4">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="setupName" className="block text-sm font-medium text-gray-700">
+                    Setup Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="setupName"
+                    name="name"
+                    required
+                    value={setupFormData.name}
+                    onChange={(e) => setSetupFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Aeropress Setup, Travel Kit"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-coffee-500 focus:ring-coffee-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="setupDescription" className="block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    id="setupDescription"
+                    name="description"
+                    rows={2}
+                    value={setupFormData.description}
+                    onChange={(e) => setSetupFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe your setup..."
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-coffee-500 focus:ring-coffee-500 sm:text-sm"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingSetup(false);
+                      setSetupFormData({ name: '', description: '' });
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                  >
+                    Create Setup
+                  </button>
                 </div>
               </div>
-            ))}
-            <button
-              onClick={() => setIsAddingSetup(true)}
-              className="relative rounded-lg border border-dashed border-gray-300 p-3 hover:border-coffee-500 transition-colors group"
-            >
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-coffee-600">
-                <span className="text-sm font-medium">+ Add setup</span>
-              </div>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Filter by category */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setSelectedCategories([])}
-              className={`px-3 py-1 rounded-full text-sm ${
-                selectedCategories.length === 0
-                  ? 'bg-coffee-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              All
-            </button>
-            <div className="relative">
+            </form>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {equipmentSetups.map((setup) => (
+                <div
+                  key={setup.id}
+                  onClick={() => setSelectedSetup(setup.id === selectedSetup ? '' : setup.id)}
+                  className={`relative rounded-lg border p-3 cursor-pointer transition-colors ${
+                    setup.id === selectedSetup
+                      ? 'border-coffee-500 bg-coffee-50'
+                      : 'border-gray-300 bg-white hover:border-gray-400'
+                  }`}
+                >
+                  <div className="flex flex-col">
+                    <h3 className="text-sm font-medium text-gray-900">{setup.name}</h3>
+                    <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{setup.description}</p>
+                    <div className="mt-2">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-coffee-100 text-coffee-800">
+                        {setup.equipment.length} items
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsFilterOpen(!isFilterOpen);
-                }}
-                className="filter-dropdown px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 inline-flex items-center"
+                onClick={() => setIsAddingSetup(true)}
+                className="relative rounded-lg border border-dashed border-gray-300 p-3 hover:border-coffee-500 transition-colors group"
               >
-                <span>Filter</span>
-                <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 group-hover:text-coffee-600">
+                  <span className="text-sm font-medium">+ Add setup</span>
+                </div>
               </button>
-              {isFilterOpen && (
-                <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
-                  <div className="py-1" role="menu">
-                    {EQUIPMENT_CATEGORIES.map((category) => (
-                      <label
-                        key={category}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCategory(category);
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category)}
-                          onChange={(e) => {
+            </div>
+          )}
+        </div>
+
+        {/* Filter by category */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setSelectedCategories([])}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  selectedCategories.length === 0
+                    ? 'bg-coffee-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                All
+              </button>
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsFilterOpen(!isFilterOpen);
+                  }}
+                  className="filter-dropdown px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 inline-flex items-center"
+                >
+                  <span>Filter</span>
+                  <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {isFilterOpen && (
+                  <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
+                    <div className="py-1" role="menu">
+                      {EQUIPMENT_CATEGORIES.map((category) => (
+                        <label
+                          key={category}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          onClick={(e) => {
                             e.stopPropagation();
                             toggleCategory(category);
                           }}
-                          className="h-4 w-4 text-coffee-600 focus:ring-coffee-500 border-gray-300 rounded mr-2"
-                        />
-                        {category}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="inline-flex items-center px-4 py-1 border border-coffee-200 rounded-full shadow-sm text-sm font-medium text-coffee-700 bg-coffee-50 hover:bg-coffee-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-          >
-            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            Share Setup
-          </button>
-        </div>
-
-        {/* Selected category pills */}
-        {selectedCategories.length > 0 && (
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex flex-wrap gap-2">
-              {selectedCategories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => toggleCategory(category)}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-coffee-100 text-coffee-800 hover:bg-coffee-200"
-                >
-                  {category}
-                  <svg className="ml-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setSelectedCategories([])}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Equipment list */}
-      <div className="bg-white divide-y divide-gray-200">
-        {displayedEquipment.map((item, index) => (
-          <div 
-            key={item.id} 
-            className={`relative ${
-              selectedIndex === index && isDrawerOpen ? 'bg-gray-100' : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center px-1 py-2">
-              <button
-                ref={el => {
-                  equipmentRefs.current[index] = el;
-                }}
-                onClick={() => {
-                  setSelectedEquipment(item);
-                  setSelectedIndex(index);
-                  setIsDrawerOpen(true);
-                }}
-                className="flex-1 flex items-center rounded-md px-2 text-left"
-              >
-                <div className="min-w-0 flex-1 flex items-center">
-                  {settings.showProductImages && (
-                    <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-md overflow-hidden">
-                      {item.image && (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-10 w-10 object-cover"
-                          loading="lazy"
-                          onError={(e) => {
-                            // Fallback image if loading fails
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=300&h=200&q=80';
-                          }}
-                        />
-                      )}
-                    </div>
-                  )}
-                  <div className={`min-w-0 flex-1 ${settings.showProductImages ? 'px-3' : ''} text-left`}>
-                    <div>
-                      <p className="text-sm font-medium text-coffee-600 truncate text-left">
-                        {item.name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-gray-500 text-left">
-                        <span className="truncate">{item.category}</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">
-                    {item.price}
-                  </p>
-                </div>
-              </button>
-              <div className="relative ml-4">
-                <Tooltip text="More options">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleDropdown(item.id);
-                    }}
-                    className={`equipment-dropdown equipment-dropdown-${item.id} p-1 text-gray-400 hover:text-gray-600`}
-                  >
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                  </button>
-                </Tooltip>
-                {dropdownOpen[item.id] && (
-                  <div className={`equipment-dropdown-${item.id} absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]`}>
-                    <div className="py-1" role="menu">
-                      <button
-                        onClick={() => {
-                          setSelectedEquipment(item);
-                          setIsDrawerOpen(true);
-                          toggleDropdown(item.id);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigate(`/dashboard/equipment/edit/${item.id}`);
-                          toggleDropdown(item.id);
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className={`block w-full text-left px-4 py-2 text-sm ${
-                          deleteConfirm[item.id]
-                            ? 'text-red-600 font-medium bg-red-50 hover:bg-red-100'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {deleteConfirm[item.id] ? 'Click again to confirm' : 'Delete'}
-                      </button>
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(category)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleCategory(category);
+                            }}
+                            className="h-4 w-4 text-coffee-600 focus:ring-coffee-500 border-gray-300 rounded mr-2"
+                          />
+                          {category}
+                        </label>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
             </div>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="inline-flex items-center px-4 py-1 border border-coffee-200 rounded-full shadow-sm text-sm font-medium text-coffee-700 bg-coffee-50 hover:bg-coffee-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+            >
+              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share Setup
+            </button>
           </div>
-        ))}
-        
-        <div className="px-4 py-3 bg-white">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleAddEquipment}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-              >
-                <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Add Equipment
-              </button>
-              
-              {hasMoreItems && (
-                <button
-                  onClick={() => setShowAllItems(!showAllItems)}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-                >
-                  {showAllItems ? (
-                    <>
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
-                      </svg>
-                      Show less
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                      Show all ({filteredEquipment.length})
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-            <div className="flex items-center">
-              {settings.showTotalPrice && (
-                <p className="text-sm font-medium text-gray-900 mr-3">
-                  ${totalValue}
-                </p>
-              )}
-              {settings.showCsvExport && (
-                <Tooltip text="Export to CSV">
+
+          {/* Selected category pills */}
+          {selectedCategories.length > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex flex-wrap gap-2">
+                {selectedCategories.map((category) => (
                   <button
-                    onClick={exportToCsv}
-                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    key={category}
+                    onClick={() => toggleCategory(category)}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-sm bg-coffee-100 text-coffee-800 hover:bg-coffee-200"
                   >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    {category}
+                    <svg className="ml-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
-                </Tooltip>
-              )}
+                ))}
+              </div>
+              <button
+                onClick={() => setSelectedCategories([])}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Equipment list */}
+        <div className="bg-white divide-y divide-gray-200">
+          {displayedEquipment.map((item, index) => (
+            <div 
+              key={item.id} 
+              className={`relative ${
+                selectedIndex === index && isDrawerOpen ? 'bg-gray-100' : 'hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center px-1 py-2">
+                <button
+                  ref={el => {
+                    equipmentRefs.current[index] = el;
+                  }}
+                  onClick={() => {
+                    setSelectedEquipment(item);
+                    setIsDrawerOpen(true);
+                    setSelectedIndex(index);
+                  }}
+                  className="flex-1 flex items-start text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
+                    <p className="text-xs text-gray-500 truncate">{item.category}</p>
+                  </div>
+                  <div className="ml-2 flex-shrink-0 flex">
+                    {item.price && (
+                      <p className="text-sm font-medium text-gray-900">${item.price}</p>
+                    )}
+                  </div>
+                </button>
+                
+                <div className="ml-4 flex-shrink-0 relative equipment-dropdown-{item.id}">
+                  <button
+                    onClick={() => toggleDropdown(item.id)}
+                    className="p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                    </svg>
+                  </button>
+                  
+                  {dropdownOpen[item.id] && (
+                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                      <div className="py-1" role="menu" aria-orientation="vertical">
+                        <button
+                          onClick={() => handleEditEquipment(item.id)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                          role="menuitem"
+                        >
+                          <svg className="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                          role="menuitem"
+                        >
+                          {deleteConfirm[item.id] ? (
+                            <>
+                              <svg className="mr-3 h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6" />
+                              </svg>
+                              Confirm Delete
+                            </>
+                          ) : (
+                            <>
+                              <svg className="mr-3 h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Controls - shown inline when no overflow */}
+      {!showStickyFooter && (
+        <div className="bg-white py-3 mt-4">
+          <div className="max-w-[580px] mx-auto">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAddEquipment}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Equipment
+                </button>
+                
+                {hasMoreItems && (
+                  <button
+                    onClick={() => setShowAllItems(!showAllItems)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                  >
+                    {showAllItems ? (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        Show all ({filteredEquipment.length})
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center">
+                {settings.showTotalPrice && (
+                  <p className="text-sm font-medium text-gray-900 mr-3">
+                    ${totalValue}
+                  </p>
+                )}
+                {settings.showCsvExport && (
+                  <Tooltip text="Export to CSV">
+                    <button
+                      onClick={exportToCsv}
+                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </button>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Sticky footer - only shown when content overflows */}
+      {showStickyFooter && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md z-10">
+          <div className="max-w-[580px] mx-auto px-4 py-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAddEquipment}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Equipment
+                </button>
+                
+                {hasMoreItems && (
+                  <button
+                    onClick={() => setShowAllItems(!showAllItems)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                  >
+                    {showAllItems ? (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        Show all ({filteredEquipment.length})
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center">
+                {settings.showTotalPrice && (
+                  <p className="text-sm font-medium text-gray-900 mr-3">
+                    ${totalValue}
+                  </p>
+                )}
+                {settings.showCsvExport && (
+                  <Tooltip text="Export to CSV">
+                    <button
+                      onClick={exportToCsv}
+                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </button>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Equipment Detail Drawer */}
       <EquipmentDetailDrawer
@@ -932,26 +1006,6 @@ const EquipmentListPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Keyboard shortcuts help */}
-      {isDrawerOpen && (
-        <div className="fixed bottom-4 right-4 bg-gray-800 bg-opacity-75 text-white text-xs rounded-md px-3 py-2 z-50">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <span className="mr-2">↑↓</span>
-              <span>Navigate</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+E</span>
-              <span>Edit</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2">Esc</span>
-              <span>Close</span>
             </div>
           </div>
         </div>
