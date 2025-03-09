@@ -1,6 +1,7 @@
 import React, { useState, useEffect, KeyboardEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Equipment, EQUIPMENT_CATEGORIES, EquipmentFormData } from '../../types/equipment';
+import EquipmentDetailDrawer from '../../components/EquipmentDetailDrawer';
 
 interface DropdownState {
   [key: string]: boolean;
@@ -50,6 +51,7 @@ const ShortcutHint = () => (
 
 const EquipmentListPage: React.FC = () => {
   // State declarations
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState<DropdownState>({});
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({});
@@ -224,6 +226,18 @@ const EquipmentListPage: React.FC = () => {
     }
   };
 
+  const handleDeleteEquipment = (id: string) => {
+    console.log('Deleting equipment:', id);
+    // In a real app, this would be an API call to delete the equipment
+    // For now, we'll just close the drawer
+    setIsDrawerOpen(false);
+    setSelectedEquipment(null);
+  };
+
+  const handleEditEquipment = (id: string) => {
+    navigate(`/dashboard/equipment/edit/${id}`);
+  };
+
   return (
     <div className="relative">
       {/* Equipment Setups */}
@@ -375,7 +389,17 @@ const EquipmentListPage: React.FC = () => {
                     <div className="py-1" role="menu">
                       <button
                         onClick={() => {
-                          // Handle edit
+                          setSelectedEquipment(item);
+                          setIsDrawerOpen(true);
+                          toggleDropdown(item.id);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate(`/dashboard/equipment/edit/${item.id}`);
                           toggleDropdown(item.id);
                         }}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -417,6 +441,15 @@ const EquipmentListPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Equipment Detail Drawer */}
+      <EquipmentDetailDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        equipment={selectedEquipment}
+        onDelete={handleDeleteEquipment}
+        onEdit={handleEditEquipment}
+      />
     </div>
   );
 };

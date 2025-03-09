@@ -26,8 +26,9 @@ const App: React.FC = () => {
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route index element={<EquipmentListPage />} />
-          <Route path="equipment/:id" element={<EquipmentDetailPage />} />
           <Route path="equipment/add" element={<AddEquipmentPage />} />
+          <Route path="equipment/edit/:id" element={<AddEquipmentPage />} />
+          <Route path="equipment/:id" element={<EquipmentDetailPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="commissions" element={<CommissionDashboard />} />
         </Route>

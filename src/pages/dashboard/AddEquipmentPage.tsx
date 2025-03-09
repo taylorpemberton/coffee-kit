@@ -1,5 +1,5 @@
 import React, { useState, useEffect, KeyboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { EquipmentFormData, EQUIPMENT_CATEGORIES } from '../../types/equipment';
 
 interface SuggestedEquipment {
@@ -33,6 +33,8 @@ const ShortcutHint = () => (
 
 const AddEquipmentPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +54,56 @@ const AddEquipmentPage: React.FC = () => {
     link: '',
     image: '',
   });
+
+  // Fetch equipment data if in edit mode
+  useEffect(() => {
+    if (id) {
+      setIsEditing(true);
+      setShowForm(true);
+      fetchEquipmentData(id);
+    }
+  }, [id]);
+
+  const fetchEquipmentData = async (equipmentId: string) => {
+    setIsLoading(true);
+    try {
+      // In a real app, this would be an API call
+      // For now, we'll mock the data
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock data based on ID
+      if (equipmentId === '1') {
+        setFormData({
+          name: 'Gaggia Classic Pro',
+          description: 'Semi-automatic espresso machine with 58mm portafilter. Great for beginners and enthusiasts alike.',
+          category: 'Espresso Machine',
+          price: '449.00',
+          purchaseDate: '2023-01-15',
+          purchaseLocation: 'Whole Latte Love',
+          link: 'https://www.wholelattelove.com/products/gaggia-classic-pro',
+          image: 'https://images.unsplash.com/photo-1574914629385-46b1d7633c91?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        });
+      } else if (equipmentId === '2') {
+        setFormData({
+          name: 'DF64 Grinder Gen 2',
+          description: 'Single dose coffee grinder with 64mm flat burrs',
+          category: 'Grinder',
+          price: '280.00',
+          purchaseDate: '2023-01-20',
+          purchaseLocation: 'eBay',
+          link: 'https://df64coffee.com/products/df64-gen-2-single-dose-coffee-grinder',
+          image: 'https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+        });
+      }
+      
+      setIsLoading(false);
+    } catch (error) {
+      setError('Failed to load equipment data');
+      setIsLoading(false);
+    }
+  };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
@@ -232,20 +284,25 @@ const AddEquipmentPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    
+    // Validate form
+    if (!formData.name || !formData.category) {
+      setError('Name and category are required');
+      return;
+    }
+    
     setIsLoading(true);
-
+    
     try {
-      // In a real app, this would be an API call to create the equipment
-      console.log('Equipment data to submit:', formData);
+      // In a real app, this would be an API call to save the equipment
+      // For now, we'll just simulate a delay and navigate back
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Simulate API delay
-      setTimeout(() => {
-        setIsLoading(false);
-        navigate('/dashboard/equipment');
-      }, 500);
+      // Navigate back to equipment list
+      navigate('/dashboard/equipment');
     } catch (err) {
-      setError('Failed to add equipment. Please try again.');
+      setError('Failed to save equipment');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -294,15 +351,12 @@ const AddEquipmentPage: React.FC = () => {
   }, [inputMode, url, description, showForm]);
 
   return (
-    <div className="max-w-[580px] mx-auto px-4">
-      <div className="mb-8">
+    <div className="max-w-4xl mx-auto">
+      <div className="md:flex md:items-center md:justify-between mb-8">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Add New Equipment
+            {isEditing ? 'Edit Equipment' : 'Add Equipment'}
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Add a new piece of coffee equipment to your collection.
-          </p>
         </div>
       </div>
 
