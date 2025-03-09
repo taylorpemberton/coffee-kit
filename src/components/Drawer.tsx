@@ -2,6 +2,28 @@ import React, { Fragment, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
+// Simple tooltip component
+const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
+  const [show, setShow] = React.useState(false);
+
+  return (
+    <div className="relative inline-block">
+      <div
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+      >
+        {children}
+      </div>
+      {show && (
+        <div className="absolute z-10 px-2 py-1 text-xs text-white bg-gray-800 rounded-md whitespace-nowrap bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-90">
+          {text}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1 border-4 border-transparent border-t-gray-800"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -55,14 +77,16 @@ const Drawer: React.FC<DrawerProps> = ({
                           {title}
                         </Dialog.Title>
                         <div className="ml-3 flex h-7 items-center">
-                          <button
-                            type="button"
-                            className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-coffee-500"
-                            onClick={onClose}
-                          >
-                            <span className="sr-only">Close panel</span>
-                            <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                          </button>
+                          <Tooltip text="Close (Esc)">
+                            <button
+                              type="button"
+                              className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-coffee-500"
+                              onClick={onClose}
+                            >
+                              <span className="sr-only">Close panel</span>
+                              <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                            </button>
+                          </Tooltip>
                         </div>
                       </div>
                     </div>

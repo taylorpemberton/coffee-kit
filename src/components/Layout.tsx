@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Layout: React.FC = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -24,7 +24,7 @@ const Layout: React.FC = () => {
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                    Home
+                    @{user?.username || 'user'}
                   </Link>
                 )}
               </nav>

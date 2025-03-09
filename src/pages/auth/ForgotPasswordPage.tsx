@@ -4,24 +4,20 @@ import { useAuth } from '../../context/AuthContext';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { forgotPassword } = useAuth();
+  const { forgotPassword, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
-    setIsLoading(true);
 
     try {
       await forgotPassword(email);
       setSuccess(true);
     } catch (err) {
       setError('Failed to send password reset email. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 

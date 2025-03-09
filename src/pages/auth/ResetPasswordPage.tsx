@@ -6,10 +6,9 @@ const ResetPasswordPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [token, setToken] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { resetPassword } = useAuth();
+  const { resetPassword, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,12 +18,15 @@ const ResetPasswordPage: React.FC = () => {
     const tokenParam = queryParams.get('token');
     if (tokenParam) {
       setToken(tokenParam);
+    } else {
+      setError('Invalid or missing reset token');
     }
   }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -32,22 +34,19 @@ const ResetPasswordPage: React.FC = () => {
     }
 
     if (!token) {
-      setError('Reset token is missing. Please use the link from your email.');
+      setError('Invalid or missing reset token');
       return;
     }
-
-    setIsLoading(true);
 
     try {
       await resetPassword(token, password);
       setSuccess(true);
+      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError('Failed to reset password. The token may be invalid or expired.');
-    } finally {
-      setIsLoading(false);
+      setError('Failed to reset password. Please try again.');
     }
   };
 

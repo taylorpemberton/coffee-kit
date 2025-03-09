@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useUserSettings } from '../../context/UserSettingsContext';
+import { validateUsername } from '../../utils/usernameBlacklist';
 
 const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUsername } = useAuth();
+  const { settings, updateSettings } = useUserSettings();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameSuccess, setUsernameSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
     password: '',
     confirmPassword: '',
+    username: user?.username || '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,8 +55,48 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleUsernameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUsernameError('');
+    setUsernameSuccess('');
+
+    // Validate username format
+    const validation = validateUsername(formData.username);
+    if (!validation.isValid) {
+      setUsernameError(validation.message);
+      return;
+    }
+
+    // Check if username is different from current username
+    if (formData.username === user?.username) {
+      setUsernameError('New username must be different from your current username');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Update username
+      const result = await updateUsername(formData.username);
+      
+      if (result.success) {
+        setUsernameSuccess(result.message);
+      } else {
+        setUsernameError(result.message);
+      }
+    } catch (err) {
+      setUsernameError('Failed to update username. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
+  };
+
+  const handleToggleChange = (setting: keyof typeof settings) => {
+    updateSettings({ [setting]: !settings[setting] });
   };
 
   return (
@@ -95,6 +141,84 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6 mb-8">
+        <div className="md:grid md:grid-cols-3 md:gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-medium leading-6 text-gray-900">Username</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Change your username. You can change it for free {user?.usernameChangesRemaining} more times.
+            </p>
+          </div>
+          <div className="mt-5 md:mt-0 md:col-span-2">
+            {usernameError && (
+              <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{usernameError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {usernameSuccess && (
+              <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-green-700">{usernameSuccess}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleUsernameSubmit}>
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-6 sm:col-span-4">
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                    Username
+                  </label>
+                  <div className="mt-1 flex rounded-md shadow-sm">
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      name="username"
+                      id="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className="focus:ring-coffee-500 focus:border-coffee-500 flex-1 block w-full rounded-none rounded-r-md sm:text-sm border-gray-300"
+                      placeholder="username"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Usernames can contain letters, numbers, underscores, dots, and hyphens.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isLoading || user?.usernameChangesRemaining === 0}
+                  className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-coffee-600 hover:bg-coffee-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500 disabled:opacity-50"
+                >
+                  {isLoading ? 'Saving...' : 'Update Username'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
         <form onSubmit={handleSubmit}>
@@ -187,6 +311,166 @@ const ProfilePage: React.FC = () => {
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="mt-8 bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+        <div className="md:grid md:grid-cols-3 md:gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-medium leading-6 text-gray-900">Display Settings</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Customize how your equipment list is displayed.
+            </p>
+          </div>
+          <div className="mt-5 md:mt-0 md:col-span-2">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Show CSV Export</h4>
+                    <p className="text-sm text-gray-500">Show the CSV export button next to the total price.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${
+                      settings.showCsvExport ? 'bg-coffee-600' : 'bg-gray-200'
+                    } relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500`}
+                    onClick={() => handleToggleChange('showCsvExport')}
+                  >
+                    <span className="sr-only">Show CSV Export</span>
+                    <span
+                      className={`${
+                        settings.showCsvExport ? 'translate-x-5' : 'translate-x-0'
+                      } pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}
+                    >
+                      <span
+                        className={`${
+                          settings.showCsvExport ? 'opacity-0 ease-out duration-100' : 'opacity-100 ease-in duration-200'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
+                          <path
+                            d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        className={`${
+                          settings.showCsvExport ? 'opacity-100 ease-in duration-200' : 'opacity-0 ease-out duration-100'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-coffee-600" fill="currentColor" viewBox="0 0 12 12">
+                          <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Show Total Price</h4>
+                    <p className="text-sm text-gray-500">Display the total price of your equipment.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${
+                      settings.showTotalPrice ? 'bg-coffee-600' : 'bg-gray-200'
+                    } relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500`}
+                    onClick={() => handleToggleChange('showTotalPrice')}
+                  >
+                    <span className="sr-only">Show Total Price</span>
+                    <span
+                      className={`${
+                        settings.showTotalPrice ? 'translate-x-5' : 'translate-x-0'
+                      } pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}
+                    >
+                      <span
+                        className={`${
+                          settings.showTotalPrice ? 'opacity-0 ease-out duration-100' : 'opacity-100 ease-in duration-200'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
+                          <path
+                            d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        className={`${
+                          settings.showTotalPrice ? 'opacity-100 ease-in duration-200' : 'opacity-0 ease-out duration-100'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-coffee-600" fill="currentColor" viewBox="0 0 12 12">
+                          <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Show Product Images</h4>
+                    <p className="text-sm text-gray-500">Display images for each equipment item.</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${
+                      settings.showProductImages ? 'bg-coffee-600' : 'bg-gray-200'
+                    } relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500`}
+                    onClick={() => handleToggleChange('showProductImages')}
+                  >
+                    <span className="sr-only">Show Product Images</span>
+                    <span
+                      className={`${
+                        settings.showProductImages ? 'translate-x-5' : 'translate-x-0'
+                      } pointer-events-none relative inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}
+                    >
+                      <span
+                        className={`${
+                          settings.showProductImages ? 'opacity-0 ease-out duration-100' : 'opacity-100 ease-in duration-200'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
+                          <path
+                            d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        className={`${
+                          settings.showProductImages ? 'opacity-100 ease-in duration-200' : 'opacity-0 ease-out duration-100'
+                        } absolute inset-0 h-full w-full flex items-center justify-center transition-opacity`}
+                        aria-hidden="true"
+                      >
+                        <svg className="h-3 w-3 text-coffee-600" fill="currentColor" viewBox="0 0 12 12">
+                          <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">

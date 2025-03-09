@@ -8,8 +8,7 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,15 +20,11 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-
     try {
       await register(name, email, password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
-      setError('Failed to create an account. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setError('Registration failed. Please try again.');
     }
   };
 

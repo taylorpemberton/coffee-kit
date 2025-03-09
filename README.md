@@ -129,7 +129,7 @@ coffee-kit/
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgements
 
-- Inspired by [ibuildmyideas.com](https://ibuildmyideas.com/)
-- Coffee equipment data structure based on real-world coffee setups 
+Ideas / TODO (standard across a lot of projects hopefully)
+- Keyboard nav
+- Keyboard shortcuts, Cmd + E to edit, Cmd + Delete to delete, Cmd + Enter to submit

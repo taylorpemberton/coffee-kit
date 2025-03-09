@@ -1,6 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Drawer from './Drawer';
 import { Equipment } from '../types/equipment';
+
+// Simple tooltip component
+const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="relative inline-block">
+      <div
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+      >
+        {children}
+      </div>
+      {show && (
+        <div className="absolute z-10 px-2 py-1 text-xs text-white bg-gray-800 rounded-md whitespace-nowrap bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 opacity-90">
+          {text}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1 border-4 border-transparent border-t-gray-800"></div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface EquipmentDetailDrawerProps {
   isOpen: boolean;
@@ -38,6 +60,26 @@ const EquipmentDetailDrawer: React.FC<EquipmentDetailDrawerProps> = ({
     onEdit(equipment.id);
     onClose();
   };
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      
+      // Command+E or Ctrl+E for edit
+      if ((e.key === 'e' || e.key === 'E') && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (equipment && onEdit) {
+          handleEdit();
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown as any);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown as any);
+    };
+  }, [isOpen, equipment, onEdit]);
 
   if (!equipment) return null;
 
@@ -169,22 +211,26 @@ const EquipmentDetailDrawer: React.FC<EquipmentDetailDrawerProps> = ({
         {/* Fixed bottom action buttons */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-200 pt-3 pb-3 bg-white px-4 sm:px-6">
           <div className="flex space-x-3">
-            <button
-              onClick={handleEdit}
-              className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              className={`flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                isConfirmingDelete 
-                  ? 'bg-red-700 hover:bg-red-800' 
-                  : 'bg-red-600 hover:bg-red-700'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
-            >
-              {isConfirmingDelete ? 'Confirm Delete' : 'Delete'}
-            </button>
+            <Tooltip text="Edit equipment details">
+              <button
+                onClick={handleEdit}
+                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-coffee-500"
+              >
+                Edit
+              </button>
+            </Tooltip>
+            <Tooltip text={isConfirmingDelete ? "Confirm deletion" : "Delete this equipment"}>
+              <button
+                onClick={handleDelete}
+                className={`flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                  isConfirmingDelete 
+                    ? 'bg-red-700 hover:bg-red-800' 
+                    : 'bg-red-600 hover:bg-red-700'
+                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+              >
+                {isConfirmingDelete ? 'Confirm Delete' : 'Delete'}
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>
