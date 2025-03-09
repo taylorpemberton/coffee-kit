@@ -13,10 +13,10 @@ CoffeeKit is a simple, free CMS for coffee enthusiasts to upload, organize, and 
 ## Tech Stack
 
 - **Frontend**: React, TypeScript, Tailwind CSS
-- **Backend**: Django (planned)
-- **Email**: Mailhog for transactional emails (planned)
-- **Image Storage**: AWS S3 or web links (planned)
-- **Hosting**: Vercel (planned)
+- **Backend**: Django with Django REST Framework
+- **Database**: SQLite (local), PostgreSQL (production)
+- **Authentication**: Token-based authentication
+- **Hosting**: Vercel
 
 ## Getting Started
 
@@ -24,8 +24,9 @@ CoffeeKit is a simple, free CMS for coffee enthusiasts to upload, organize, and 
 
 - Node.js (v14 or later)
 - npm or yarn
+- Python 3.8 or later (for backend)
 
-### Installation
+### Frontend Installation
 
 1. Clone the repository:
    ```
@@ -50,12 +51,58 @@ CoffeeKit is a simple, free CMS for coffee enthusiasts to upload, organize, and 
 
 5. The app will open automatically at [http://localhost:3000](http://localhost:3000)
 
-## TODO
+### Backend Installation
 
-- [ ] Set up Vercel account for deployment
-- [ ] Deploy initial version to Vercel
-- [ ] Implement Django backend API
-- [ ] Connect frontend to Django backend
+1. Navigate to the backend directory:
+   ```
+   cd backend
+   ```
+
+2. Create a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. Run migrations:
+   ```
+   python manage.py migrate
+   ```
+
+5. Create a superuser:
+   ```
+   python manage.py createsuperuser
+   ```
+
+6. Start the development server:
+   ```
+   python manage.py runserver
+   ```
+
+7. Access the Django admin at [http://localhost:8000/admin](http://localhost:8000/admin)
+
+## Current Status
+
+- ✅ Frontend UI implemented with React and Tailwind CSS
+- ✅ Django backend API implemented with Django REST Framework
+- ✅ Equipment and RetailerLink models created
+- ✅ API endpoints for equipment and retailer links
+- ✅ Backend deployed to Vercel
+
+## TODO (Next Steps)
+
+- [ ] Set up PostgreSQL database in production
+- [ ] Configure environment variables in Vercel
+- [ ] Run migrations on production database
+- [ ] Create superuser for production admin
+- [ ] Connect frontend to backend API
+- [ ] Deploy frontend to Vercel
+- [ ] Implement user authentication in frontend
 - [ ] Set up Mailhog for transactional emails
 - [ ] Implement image upload functionality
 - [ ] Add social sharing features
@@ -63,9 +110,14 @@ CoffeeKit is a simple, free CMS for coffee enthusiasts to upload, organize, and 
 
 ## Deployment
 
-This project is configured for easy deployment to Vercel.
+### Backend Deployment (Completed)
 
-### Deploy to Vercel
+The backend has been deployed to Vercel at:
+https://coffee-kit-backend-f223xmwg6-taylors-projects-cba75833.vercel.app
+
+### Frontend Deployment
+
+This project is configured for easy deployment to Vercel.
 
 #### Option 1: Using the Vercel CLI
 
@@ -81,7 +133,7 @@ This project is configured for easy deployment to Vercel.
 
 3. Deploy to Vercel:
    ```
-   npm run deploy
+   vercel
    ```
 
 #### Option 2: Using the Vercel Dashboard
@@ -96,6 +148,11 @@ This project is configured for easy deployment to Vercel.
 
 ```
 coffee-kit/
+├── backend/             # Django backend
+│   ├── coffee_backend/  # Django project settings
+│   ├── equipment/       # Equipment app
+│   ├── manage.py        # Django management script
+│   └── requirements.txt # Python dependencies
 ├── public/              # Static files
 ├── src/                 # Source code
 │   ├── api/             # API service functions
@@ -119,11 +176,10 @@ coffee-kit/
 
 ## Future Plans
 
-- Implement Django backend for user authentication and data storage
-- Set up Mailhog for transactional emails
 - Add AWS S3 integration for image uploads
 - Implement public sharing functionality
 - Add social features for coffee enthusiasts
+- Mobile app version
 
 ## License
 
